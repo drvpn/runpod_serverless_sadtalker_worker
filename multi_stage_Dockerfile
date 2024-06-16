@@ -1,0 +1,43 @@
+# Use the official Python 3.8 image from the Docker Hub
+FROM python:3.8-slim AS builder
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Install dependencies and essential tools
+RUN apt-get update && \
+    apt-get install -y git ffmpeg && \
+    apt-get clean
+
+# Clone the SadTalker repository
+RUN git clone https://github.com/OpenTalker/SadTalker.git /app/SadTalker
+
+# Change to the SadTalker directory
+WORKDIR /app/SadTalker
+
+COPY app/ /app/SadTalker
+
+# Install PyTorch with CUDA support and other dependencies separately to manage memory better
+RUN pip install torch==1.12.1+cu113 --extra-index-url https://download.pytorch.org/whl/cu113 && \
+    pip install torchvision==0.13.1+cu113 --extra-index-url https://download.pytorch.org/whl/cu113 && \
+    pip install torchaudio==0.12.1 --extra-index-url https://download.pytorch.org/whl/cu113 && \
+    pip install boto3 runpod==1.6.0 && \
+    pip install -r requirements.txt
+
+# Use a smaller base image for the final build
+FROM python:3.8-slim
+
+# Set the working directory inside the container
+WORKDIR /app/SadTalker
+
+# Copy the installed packages and application files from the builder stage
+COPY --from=builder /usr/local/lib/python3.8/site-packages /usr/local/lib/python3.8/site-packages
+COPY --from=builder /app/SadTalker /app/SadTalker
+
+# Install ffmpeg separately to ensure the final image has the required binaries
+RUN apt-get update && \
+    apt-get install -y ffmpeg && \
+    apt-get clean
+
+# Set the entrypoint
+CMD ["python", "-u", "/app/SadTalker/handler.py"]
