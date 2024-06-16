@@ -6,8 +6,7 @@ This project allows users to install SadTalker, an AI model that generates reali
 
 ## Docker image
 
-Docker image available at: [Docker Hub](https://hub.docker.com/repository/docker/drvpn/runpod_serverless_sadtalker_worker)
-
+Docker image available at: [Docker Hub](https://hub.docker.com/r/drvpn/runpod_serverless_sadtalker_worker)
 ## Environment Variables
 
 To run this application on RunPod serverless, you need to set the following environment variables:
